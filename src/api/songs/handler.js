@@ -7,6 +7,7 @@ class SongsHandler {
 
     this.postSongHandler = this.postSongHandler.bind(this);
     this.getSongsHandler = this.getSongsHandler.bind(this);
+    this.getSongByIdHandler = this.getSongByIdHandler.bind(this);
   }
 
   async postSongHandler(request, h) {
@@ -19,8 +20,8 @@ class SongsHandler {
       const songId = await this._service.addSong({
         title,
         year,
-        genre,
         performer,
+        genre,
         duration,
         albumId,
       });
@@ -66,6 +67,41 @@ class SongsHandler {
         songs,
       },
     };
+  }
+
+  async getSongByIdHandler(request, h) {
+    try {
+      const { id } = request.params;
+
+      const song = await this._service.getSongById(id);
+
+      return {
+        status: 'success',
+        data: {
+          song,
+        },
+      };
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // server erorr
+      const response = h.response({
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
+      });
+
+      response.code(500);
+      console.error(error);
+      return response;
+    }
   }
 }
 
