@@ -34,8 +34,9 @@ class AlbumsService {
 
     const result = await this._pool.query(query);
 
-    console.log(result.rows[0].id);
-    // console.log(songs);
+    if (!result.rows.length) {
+      throw new NotFoundError('Album tidak ditemukan');
+    }
 
     const querySong = {
       text: 'SELECT id,title,performer FROM songs WHERE "albumId" = $1',
@@ -44,10 +45,6 @@ class AlbumsService {
 
     const resultSong = await this._pool.query(querySong);
     const songs = resultSong.rows;
-
-    if (!result.rows.length) {
-      throw new NotFoundError('Album tidak ditemukan');
-    }
 
     return result.rows.map(({ id, name, year }) => ({
       id,
