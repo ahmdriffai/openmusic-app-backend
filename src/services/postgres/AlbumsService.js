@@ -41,7 +41,20 @@ class AlbumsService {
     return result.rows[0];
   }
 
-  // editAlbumById() {}
+  async editAlbumById(id, { name, year }) {
+    const query = {
+      text: 'UPDATE albums SET name = $1, year = $2 WHERE id = $3 RETURNING id',
+      values: [name, year, id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Gagal memperbarui album, id tidak ditemukan');
+    }
+
+    return result.rows[0];
+  }
 
   // deleteAlbumById() {}
 }

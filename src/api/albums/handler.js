@@ -7,6 +7,7 @@ class AlbumsHandler {
 
     this.postAlbumHandler = this.postAlbumHandler.bind(this);
     this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
+    this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
   }
 
   async postAlbumHandler(request, h) {
@@ -60,6 +61,44 @@ class AlbumsHandler {
           album,
         },
       };
+    } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // server erorr
+      const response = h.response({
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
+      });
+
+      response.code(500);
+      console.error(error);
+      return response;
+    }
+  }
+
+  async putAlbumByIdHandler(request, h) {
+    try {
+      this._validator.validateAlbumPayload(request.payload);
+
+      const { id } = request.params;
+      const { name, year } = request.payload;
+
+      await this._service.editAlbumById(id, { name, year });
+
+      const response = h.response({
+        status: 'success',
+        message: 'Berhasil memperbarui album',
+      });
+
+      return response;
     } catch (error) {
       if (error instanceof ClientError) {
         const response = h.response({
