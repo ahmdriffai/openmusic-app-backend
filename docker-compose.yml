@@ -1,0 +1,12 @@
+version: '3.9'
+services:
+  db:
+    container_name: postgres-open-music
+    restart: always
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=openmusic
+      - POSTGRES_PASSWORD=rahasia
+      - POSTGRES_DB=dbopenmusic
