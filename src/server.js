@@ -15,12 +15,16 @@ const UserValidator = require('./validator/users');
 const authentications = require('./api/authentications');
 const TokenManager = require('./tokenize/TokenManager');
 const AuthenticationsValidator = require('./validator/authentcations');
+const playlists = require('./api/playlists');
+const PlaylistsService = require('./services/postgres/PlaylistsService');
+const PlaylistValidator = require('./validator/playlists');
 
 const init = async () => {
   const albumService = new AlbumsService();
   const songService = new SongsService();
   const userService = new UserService();
   const authenticationService = new AuthenticationService();
+  const playlistsService = new PlaylistsService();
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -32,6 +36,28 @@ const init = async () => {
     },
   });
 
+  // plugin eksternal
+  await server.register([
+    {
+      plugin: Jwt,
+    },
+  ]);
+  // mendefinisikan strategy autentikasi jwt
+  server.auth.strategy('openmusic_jwt', 'jwt', {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    },
+    validate: (artifacts) => ({
+      isValid: true,
+      credentials: {
+        id: artifacts.decoded.payload.id,
+      },
+    }),
+  });
   await server.register([
     {
       plugin: albums,
@@ -63,31 +89,14 @@ const init = async () => {
         validator: AuthenticationsValidator,
       },
     },
-  ]);
-
-  // plugin eksternal
-  await server.register([
     {
-      plugin: Jwt,
+      plugin: playlists,
+      options: {
+        playlistsService,
+        validator: PlaylistValidator,
+      },
     },
   ]);
-
-  // strategi authentikasi jwt
-  server.auth.strategy('openmusic_jwt', 'jwt', {
-    keys: process.env.ACCESS_TOKEN_KEY,
-    verify: {
-      aud: false,
-      iss: false,
-      sub: false,
-      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
-    },
-    validate: (artifacts) => ({
-      isValid: true,
-      credentials: {
-        id: artifacts.decode.payload.id,
-      },
-    }),
-  });
 
   await server.start();
   console.log(`Server berjalan pada ${server.info.uri}`);
