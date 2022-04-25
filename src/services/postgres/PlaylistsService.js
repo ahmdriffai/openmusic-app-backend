@@ -41,16 +41,29 @@ class PlaylistsService {
     return result.rows;
   }
 
-  async verifyPlaylistOwner(id, owner) {
+  async deletePlaylistById(id) {
     const query = {
-      text: 'SELECT * FROM playlist WHERE id = $1',
+      text: 'DELETE FROM playlists WHERE id = $1',
       values: [id],
     };
 
     const result = await this._pool.query(query);
 
     if (!result.rows.length) {
-      throw new NotFoundError('Catatan tidak ditemukan');
+      throw new NotFoundError('Gagal menghapus album, id tidak ditemukan');
+    }
+  }
+
+  async verifyPlaylistOwner(id, owner) {
+    const query = {
+      text: 'SELECT * FROM playlists WHERE id = $1',
+      values: [id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Playlist tidak ditemukan');
     }
 
     const playlist = result.rows[0];
