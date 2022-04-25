@@ -6,6 +6,7 @@ class PlaylistHandler {
     this._validator = validator;
 
     this.postPlaylistHandler = this.postPlaylistHandler.bind(this);
+    this.getPlaylistsHandler = this.getPlaylistsHandler.bind(this);
   }
 
   async postPlaylistHandler(request, h) {
@@ -25,6 +26,23 @@ class PlaylistHandler {
       });
       response.code(201);
       return response;
+    } catch (error) {
+      return errorResponse(error, h);
+    }
+  }
+
+  async getPlaylistsHandler(request, h) {
+    const { id: credentialId } = request.auth.credentials;
+
+    try {
+      const playlists = await this._playlistService.getPlaylist({ owner: credentialId });
+
+      return {
+        status: 'success',
+        data: {
+          playlists,
+        },
+      };
     } catch (error) {
       return errorResponse(error, h);
     }
